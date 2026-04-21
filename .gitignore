@@ -1,0 +1,22 @@
+# Python 默认缓存
+__pycache__/
+*.pyc
+
+# 环境变量与密钥
+.env
+
+# RAG 数据与测试图纸 (建筑规范 PDF、图纸图片等)
+data/
+*.pdf
+*.png
+*.jpg
+*.jpeg
+
+# 向量数据库本地持久化文件 (如果是离线 FAISS 或 Chroma)
+vector_store/
+faiss_index/
+chroma_db/
+
+# VLM 模型缓存或日志
+logs/
+checkpoints/
