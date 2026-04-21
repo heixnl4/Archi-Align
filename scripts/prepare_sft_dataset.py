@@ -26,20 +26,25 @@ client = OpenAI(
     base_url=BASE_URL 
 )
 
-def generate_qa_pairs(chunk_text):
-    system_prompt = """你是一个专业的建筑史学术数据生成器。
-你的任务是根据提供的【参考文本】，生成用于训练 RAG（检索增强生成）系统的问答对。
-你必须严格输出一个 JSON 格式的数组，包含两个问答对：一个正样本，一个负样本。
+def generate_dynamic_qa_pairs(chunk_text):
+    system_prompt = """你是一个严谨的建筑史学术数据提取引擎。
+你的任务是评估提供的【参考文本】的信息密度，并动态生成用于训练 RAG 系统的问答对。
 
-【输出 JSON 格式要求】：
+【提取规则】：
+1. 评估信息密度：如果文本只是闲聊、无关紧要的过渡或缺乏实质性建筑史知识，请直接返回空数组 `[]`。
+2. 动态数量：根据文本中包含的独立知识点数量，生成对应数量的正样本。知识点越密集，生成的正样本越多（最多可达 5-6 个）。
+3. 负样本构造：对于每一段包含有效知识的文本，必须且仅需生成 1 个具有高度迷惑性的负样本（询问文本中未提及的细节）。
+
+【输出 JSON 格式要求】（必须是包含多个对象的数组）：
 [
   {
-    "instruction": "根据参考文本提出的具体问题",
+    "instruction": "根据参考文本提出的具体问题（正样本）",
     "input": "提供的参考文本",
     "output": "详细且严谨的回答，并使用 [1] 标注信息来源。"
   },
+  // ... (根据信息密度，动态添加更多的正样本 JSON 对象)
   {
-    "instruction": "提出一个具有高度迷惑性的问题。这个问题必须与【参考文本】中的某个核心实体（如建筑名、人物）相关，但具体询问的细节（如设计师、年代、具体材料等）在【参考文本】中绝对没有提到，也可以捏造一个细节或问其他时代的建筑。",
+    "instruction": "提出一个迷惑性问题，这个问题必须与【参考文本】中的某个核心实体（如建筑名、人物）相关，但具体询问的细节（如设计师、年代、具体材料等）在【参考文本】中绝对没有提到，也可以捏造一个细节或问其他时代的建筑。与文本核心实体相关但细节未提及（负样本）",
     "input": "提供的参考文本",
     "output": "抱歉，提供的参考资料中未包含关于[问题核心词汇]的相关信息。"
   }
@@ -65,8 +70,8 @@ def generate_qa_pairs(chunk_text):
 def build_dataset(chunks, output_file="rag_sft_dataset.jsonl"):
     with open(output_file, 'w', encoding='utf-8') as f:
         # 使用 tqdm 显示进度条，假设我们先拿前 5 个 chunk 测试
-        for chunk in tqdm(chunks[:2]): 
-            qa_pairs = generate_qa_pairs(chunk)
+        for chunk in tqdm(chunks[2:4]): 
+            qa_pairs = generate_dynamic_qa_pairs(chunk)
             for qa in qa_pairs:
                 # 写入 JSONL 格式（一行一个 JSON，微调框架标准格式）
                 f.write(json.dumps(qa, ensure_ascii=False) + '\n')
@@ -96,7 +101,7 @@ def clean_and_chunk_docx(file_path, chunk_size=500, overlap=50):
     return chunks
 
 # 测试提取
-chunks = clean_and_chunk_docx("../dataset/raw/外国建筑史.docx")
+chunks = clean_and_chunk_docx("../data/raw/外国建筑史.docx")
 print(f"共提取了 {len(chunks)} 个文本切片")
 
 # 运行合成
