@@ -4,8 +4,7 @@ import sys
 __package__ = "scripts"
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import json
-import docx
-import re
+from utils import clean_and_chunk_docx
 from tqdm import tqdm
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -27,12 +26,12 @@ client = OpenAI(
 )
 
 def generate_dynamic_qa_pairs(chunk_text):
-    system_prompt = """你是一个严谨的建筑史学术数据提取引擎。
-你的任务是提取【参考文本】中的核心建筑史知识，动态生成用于训练 RAG 系统的问答对。
+    system_prompt = """你是一个严谨的艺术史学术数据提取引擎。
+你的任务是提取【参考文本】中的核心艺术史知识，动态生成用于训练 RAG 系统的问答对。
 
 【提取与生成规则】（严格遵守）：
-1. 问题（instruction）中绝对不能出现“外国建筑史B课程”、“根据参考文本”、“文中提到”、“课程中”、“教材指出”等字眼。必须直接提问核心知识点。
-2. 动态数量：评估信息密度，根据有效知识点数量，生成对应数量的正样本。知识点越密集，生成的正样本越多（数量在 1-4 个左右）
+1. 问题（instruction）中绝对不能出现“西方艺术史课程”、“根据参考文本”、“文中提到”、“课程中”、“教材指出”等字眼。必须直接提问核心知识点。
+2. 动态数量：评估信息密度，根据有效知识点数量，生成对应数量的正样本。知识点越密集，生成的正样本越多（数量在 2-5 个左右）
 3. 负样本构造：针对文本的核心实体，提出一个具体的、但在文本中未提及细节的迷惑性问题（同样不允许使用“参考文本”等前缀词）。
 
 【输出 JSON 格式要求】（必须是包含多个对象的数组）：
@@ -76,32 +75,10 @@ def build_dataset(chunks, output_file="rag_sft_dataset.jsonl"):
                 # 写入 JSONL 格式（一行一个 JSON，微调框架标准格式）
                 f.write(json.dumps(qa, ensure_ascii=False) + '\n')
 
-def clean_and_chunk_docx(file_path, chunk_size=500, overlap=50):
-    """
-    读取 Word 文档，清洗无用字符，并按字数进行滑动窗口切片
-    """
-    doc = docx.Document(file_path)
-    full_text = []
-    for para in doc.paragraphs:
-        text = para.text.strip()
-        # 简单清洗：去除连续的空格和特殊符号
-        text = re.sub(r'\s+', ' ', text)
-        if len(text) > 5:  # 过滤掉太短的无意义段落
-            full_text.append(text)
-            
-    content = " ".join(full_text)
-    
-    chunks = []
-    # 滑动窗口切片，overlap 保证上下文不被生硬截断
-    for i in range(0, len(content), chunk_size - overlap):
-        chunk = content[i:i + chunk_size]
-        if len(chunk) > 100: # 过滤掉末尾太短的切片
-            chunks.append(chunk)
-            
-    return chunks
+
 
 # 测试提取
-chunks = clean_and_chunk_docx("../data/raw/外国建筑史.docx")
+chunks = clean_and_chunk_docx("../data/raw/西方艺术史.docx")
 print(f"共提取了 {len(chunks)} 个文本切片")
 
 # 运行合成

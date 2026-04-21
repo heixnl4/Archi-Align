@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+from utils import clean_and_chunk_docx
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
@@ -16,9 +17,28 @@ async def generate_single_chunk_async(chunk_text, chunk_index, semaphore):
     """
     异步处理单个切片，受 semaphore 控制并发量
     """
-    system_prompt = """你是一个严谨的建筑史学术数据提取引擎。
-    评估参考文本信息密度，动态生成 RAG 问答对 JSON 数组。
-    (此处省略具体的 Prompt，直接复用我们之前讨论过的动态生成 Prompt 即可)"""
+    system_prompt = """你是一个严谨的艺术史学术数据提取引擎。
+你的任务是提取【参考文本】中的核心艺术史知识，动态生成用于训练 RAG 系统的问答对。
+
+【提取与生成规则】（严格遵守）：
+1. 问题（instruction）中绝对不能出现“西方艺术史课程”、“根据参考文本”、“文中提到”、“课程中”、“教材指出”等字眼。必须直接提问核心知识点。
+2. 动态数量：评估信息密度，根据有效知识点数量，生成对应数量的正样本。知识点越密集，生成的正样本越多（数量在 2-5 个左右）
+3. 负样本构造：针对文本的核心实体，提出一个具体的、但在文本中未提及细节的迷惑性问题（同样不允许使用“参考文本”等前缀词）。
+
+【输出 JSON 格式要求】（必须是包含多个对象的数组）：
+[
+  {
+    "instruction": "根据参考文本提出的具体问题（正样本）",
+    "input": "提供的参考文本",
+    "output": "详细且严谨的回答，并使用 [1] 标注信息来源。"
+  },
+  // ... (根据信息密度，动态添加更多的正样本 JSON 对象)
+  {
+    "instruction": "提出一个迷惑性问题，具体询问的细节（如人物、年代等）在【参考文本】中绝对没有提到，也可以捏造一个细节或问其他时代的艺术作品，或者与文本核心实体相关但细节未提及（负样本）",
+    "input": "提供的参考文本",
+    "output": "抱歉，提供的参考资料中未包含关于[问题核心词汇]的相关信息。"
+  }
+]"""
 
     # 信号量：控制同时处于请求状态的协程数量
     async with semaphore:
@@ -40,7 +60,7 @@ async def generate_single_chunk_async(chunk_text, chunk_index, semaphore):
             print(f"[X] Chunk {chunk_index} 处理失败: {e}")
             return []
 
-async def build_dataset_async(chunks, output_file="rag_sft_dataset.jsonl", max_concurrent=10):
+async def build_dataset_async(chunks, output_file="../data/processed/rag_sft_dataset.jsonl", max_concurrent=10):
     """
     异步并发构建数据集
     """
@@ -70,11 +90,8 @@ async def build_dataset_async(chunks, output_file="rag_sft_dataset.jsonl", max_c
 
 # 运行入口
 if __name__ == "__main__":
-    # 假设你已经有了 chunks 列表
-    # chunks = clean_and_chunk_docx("../data/raw/建筑史资料.docx")
-    
-    # 为了测试，我们用 5 个虚拟切片
-    test_chunks = ["测试切片1", "测试切片2", "测试切片3", "测试切片4", "测试切片5"]
+    chunks = clean_and_chunk_docx("../data/raw/西方艺术史.docx")
+    print(f"共提取了 {len(chunks)} 个文本切片")
     
     # Python 3.7+ 运行异步主函数的标准做法
-    asyncio.run(build_dataset_async(test_chunks, max_concurrent=3))
+    asyncio.run(build_dataset_async(chunks, max_concurrent=50))

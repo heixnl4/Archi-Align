@@ -1,6 +1,6 @@
 import json
 
-input_path = "./rag_sft_dataset2.jsonl"
+input_path = "./rag_sft_dataset.jsonl"
 output_path = "./filtered_rag_sft_dataset.jsonl"
 
 with open(input_path, "r", encoding="utf-8") as infile, \
