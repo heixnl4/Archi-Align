@@ -60,7 +60,7 @@ async def generate_single_chunk_async(chunk_text, chunk_index, semaphore):
             print(f"[X] Chunk {chunk_index} 处理失败: {e}")
             return []
 
-async def build_dataset_async(chunks, output_file="../data/processed/rag_sft_dataset.jsonl", max_concurrent=10):
+async def build_dataset_async(chunks, output_file="../../data/processed/rag_sft_dataset.jsonl", max_concurrent=10):
     """
     异步并发构建数据集
     """
@@ -90,7 +90,7 @@ async def build_dataset_async(chunks, output_file="../data/processed/rag_sft_dat
 
 # 运行入口
 if __name__ == "__main__":
-    chunks = clean_and_chunk_docx("../data/raw/西方艺术史.docx")
+    chunks = clean_and_chunk_docx("../../data/raw/西方艺术史.docx")
     print(f"共提取了 {len(chunks)} 个文本切片")
     
     # Python 3.7+ 运行异步主函数的标准做法
