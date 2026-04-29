@@ -78,7 +78,7 @@ def build_dataset(chunks, output_file="rag_sft_dataset.jsonl"):
 
 
 # 测试提取
-chunks = clean_and_chunk_docx("../data/raw/西方艺术史.docx")
+chunks = clean_and_chunk_docx("../../data/raw/西方艺术史.docx")
 print(f"共提取了 {len(chunks)} 个文本切片")
 
 # 运行合成

@@ -93,7 +93,7 @@ def main():
     
     print(">>> 3. 配置训练超参数...")
     training_args = TrainingArguments(
-        output_dir="./outputs/Qwen-Arch-LoRA",
+        output_dir="../../outputs/Qwen-Arch-LoRA",
         per_device_train_batch_size=2, # 取决于显存，4090 一般可以开到 2 或 4
         gradient_accumulation_steps=4, # 累积 4 步才更新一次梯度，等效 Batch Size = 8
         learning_rate=2e-4,            # LoRA 经典学习率
@@ -122,8 +122,8 @@ def main():
     trainer.train()
     
     print(">>> 5. 保存最终 LoRA 权重...")
-    trainer.model.save_pretrained("./outputs/Qwen-Arch-LoRA/final")
-    tokenizer.save_pretrained("./outputs/Qwen-Arch-LoRA/final")
+    trainer.model.save_pretrained("../../outputs/Qwen-Arch-LoRA/final")
+    tokenizer.save_pretrained("../../outputs/Qwen-Arch-LoRA/final")
 
 if __name__ == "__main__":
     main()

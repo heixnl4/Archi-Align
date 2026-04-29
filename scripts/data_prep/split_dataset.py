@@ -31,8 +31,8 @@ def split_data(input_file, train_file, val_file, val_size=50):
 
 if __name__ == "__main__":
     # 请确保路径与你服务器上的实际结构匹配
-    input_path = "../data/processed/rag_sft_dataset.jsonl"
-    train_path = "../data/processed/train_sft.jsonl"
-    val_path = "../data/processed/val_sft.jsonl"
+    input_path = "../../data/processed/rag_sft_dataset.jsonl"
+    train_path = "../../data/processed/train_sft.jsonl"
+    val_path = "../../data/processed/val_sft.jsonl"
     
     split_data(input_path, train_path, val_path)
