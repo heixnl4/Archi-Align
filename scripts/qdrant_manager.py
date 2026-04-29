@@ -19,11 +19,15 @@ class VectorDBManager:
     def __init__(self, db_path=DEFAULT_DB_PATH, collection_name="arch_history"):
         print(f">>> 连接本地 Qdrant 数据库 (Windows 原生支持): {db_path}")
         # Qdrant 本地模式：数据会直接保存在你指定的文件夹中
+        # 确保 data 文件夹和 qdrant_db 文件夹存在，如果不存在则自动创建
+        os.makedirs(db_path, exist_ok=True)
+        
+        print(f">>> 连接本地 Qdrant 数据库: {db_path}")
         self.client = QdrantClient(path=db_path) 
         self.collection_name = collection_name
-        self.dim = 1024 # BGE-M3 的维度
-        
+        self.dim = 1024 
         self.embed_model = None
+        self.model_path = "D:/develop/models/bge-m3"
 
     def create_collection(self):
         """定义表结构 (Schema)"""
@@ -41,46 +45,59 @@ class VectorDBManager:
         print(">>> 集合创建完毕！")
 
     def insert_jsonl_data(self, jsonl_path):
-        """将 JSONL 数据灌入 Qdrant"""
+        """将 JSONL 数据灌入 Qdrant (修复了重复插入问题)"""
         if self.embed_model is None:
-            print("加载 Embedding 模型...")
-            self.embed_model = SentenceTransformer('D:/develop/models/bge-m3')
+            print(f"加载 Embedding 模型: {self.model_path}")
+            self.embed_model = SentenceTransformer(self.model_path, device='cpu')
 
         print(">>> 开始解析并插入数据...")
         points = []
+        
+        if not os.path.exists(jsonl_path):
+            print(f"错误: 找不到文件 {jsonl_path}")
+            return
+
+        # 使用一个 Set 在内存里先做一层去重，防止同一个 JSONL 里就有重复行
+        seen_texts = set()
+
         with open(jsonl_path, 'r', encoding='utf-8') as f:
             for line in f:
-                data = json.loads(line)
-                text = data.get("input", "").strip()
-                if not text:
-                    continue
-                
-                # 计算向量
-                vec = self.embed_model.encode(text).tolist()
-                
-                # Qdrant 需要为每条数据生成一个唯一 ID
-                point_id = str(uuid.uuid4())
-                
-                # 组装数据点 (Point)
-                points.append(
-                    PointStruct(
-                        id=point_id, 
-                        vector=vec, 
-                        payload={"text": text, "source": "中外建筑史"} # 元数据存在 payload 里
+                try:
+                    data = json.loads(line)
+                    text = data.get("input", "").strip()
+                    
+                    if not text or text in seen_texts:
+                        continue
+                    seen_texts.add(text)
+                    
+                    vec = self.embed_model.encode(text).tolist()
+                    
+                    # 【核心修改】: 使用 uuid5 基于文本内容生成确定性 ID
+                    # NAMESPACE_DNS 是一个标准盐值，配合你的文本生成固定的 UUID
+                    point_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, text))
+                    
+                    points.append(
+                        PointStruct(
+                            id=point_id, 
+                            vector=vec, 
+                            payload={"text": text, "source": "中外建筑史"}
+                        )
                     )
-                )
+                except Exception as e:
+                    print(f"解析行出错: {e}")
 
-        # 批量写入数据库
-        self.client.upsert(
-            collection_name=self.collection_name,
-            points=points
-        )
-        print(f"成功插入 {len(points)} 条记录！")
+        if points:
+            # upsert 的机制：如果 point_id 已经存在，则覆盖；不存在，则新增
+            self.client.upsert(
+                collection_name=self.collection_name,
+                points=points
+            )
+            print(f"成功插入或更新了 {len(points)} 条去重后的记录！")
 
     def search(self, query, top_k=10):
         """向量检索"""
         if self.embed_model is None:
-            self.embed_model = SentenceTransformer('D:/develop/models/bge-m3')
+            self.embed_model = SentenceTransformer(self.model_path, device='cpu')
 
         query_vec = self.embed_model.encode(query).tolist()
         
@@ -103,7 +120,7 @@ if __name__ == "__main__":
     db_manager.create_collection()
     
     # 取消注释以下代码进行首次数据灌注
-    db_manager.insert_jsonl_data("../data/processed/test_chunks.jsonl")
+    # db_manager.insert_jsonl_data("../data/processed/test_chunks.jsonl")
 
     # 3. 检索测试
     results = db_manager.search("沃波尔在草莓山住宅使用了什么风格？", top_k=5)

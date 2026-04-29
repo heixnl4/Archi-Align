@@ -16,7 +16,7 @@ DEFAULT_DB_PATH = os.path.join(PROJECT_ROOT, "data", "qdrant_db")
 # ================================================
 
 class VectorDBManager:
-    def __init__(self, db_path="./architecture_knowledge.db", collection_name="arch_history"):
+    def __init__(self, db_path=DEFAULT_DB_PATH, collection_name="arch_history"):
         print(f">>> 连接本地 Milvus 数据库: {db_path}")
         # Milvus Lite 的魔法：直接指定一个本地文件路径即可
         self.client = MilvusClient(db_path)

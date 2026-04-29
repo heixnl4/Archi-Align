@@ -81,17 +81,22 @@ if __name__ == "__main__":
     import json
     
     # 1. 准备数据源
-    jsonl_path = "your_data.jsonl"
+    jsonl_path = "../data/processed/test_chunks.jsonl"
     all_chunks = []
     with open(jsonl_path, 'r', encoding='utf-8') as f:
         for line in f:
             data = json.loads(line)
-            if "input" in data and data["input"].strip():
-                all_chunks.append(data["input"])
+            # 【修复关键】：统一提取出来并执行 strip()
+            text = data.get("input", "")
+            if text.strip():
+                # 确保进入 all_chunks 的也是干干净净的字符串
+                all_chunks.append(text.strip()) 
+                
+    # 在内存中对原始文本做一遍绝对一致的去重
     all_chunks = list(set(all_chunks))
     
     # 2. 实例化数据库 (确保你之前已经运行过 create_collection 和 insert_jsonl_data)
-    db = VectorDBManager(db_path="./architecture_knowledge.db")
+    db = VectorDBManager()
     
     # 3. 实例化 V2 版检索器
     retriever = HybridRetrieverV2(db_manager=db, all_chunks=all_chunks)
