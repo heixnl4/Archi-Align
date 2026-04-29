@@ -7,10 +7,10 @@ from qdrant_client.models import VectorParams, Distance, PointStruct
 from sentence_transformers import SentenceTransformer
 
 # ================= 路径动态推导 =================
-# 1. 获取当前脚本 (qdrant_manager.py) 所在目录的绝对路径 (.../Archi-Align/scripts)
+# 1. 获取当前脚本 (qdrant_manager.py) 所在目录的绝对路径 (.../Archi-Align/src/retrieval)
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # 2. 推导出项目根目录 (.../Archi-Align)
-PROJECT_ROOT = os.path.dirname(CURRENT_DIR)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
 # 3. 定义数据库存放位置 (.../Archi-Align/data/qdrant_db)
 DEFAULT_DB_PATH = os.path.join(PROJECT_ROOT, "data", "qdrant_db")
 # ================================================

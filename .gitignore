@@ -20,5 +20,5 @@ chroma_db/
 # VLM 模型缓存或日志
 logs/
 checkpoints/
-笔记/
+docs/
 outputs/

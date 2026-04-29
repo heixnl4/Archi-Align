@@ -81,7 +81,7 @@ if __name__ == "__main__":
     import json
     
     # 1. 准备数据源
-    jsonl_path = "../data/processed/test_chunks.jsonl"
+    jsonl_path = "../../data/processed/test_chunks.jsonl"
     all_chunks = []
     with open(jsonl_path, 'r', encoding='utf-8') as f:
         for line in f:
