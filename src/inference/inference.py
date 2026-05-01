@@ -20,7 +20,7 @@ def generate_response(model, tokenizer, instruction, input_text):
 
 def main():
     base_model_path = "/root/autodl-tmp/models/Qwen2.5-7B-Instruct"
-    lora_path = "./outputs/Qwen-Arch-LoRA/final"
+    lora_path = "../../outputs/Qwen-Arch-LoRA/final"
 
     print(">>> 1. 加载 Tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(base_model_path, trust_remote_code=True)

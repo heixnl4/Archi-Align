@@ -44,10 +44,11 @@
 - [x] 编写模型微调前后的推理对比测试脚本。
 - [x] 实现 LLM-as-a-Judge，对 SFT 模型进行定性（Case Study）与定量（拒答率、格式正确率）的“体检”。
 
-### 🏃 Phase 2: 构建高精度 RAG 检索闭环 (进行中)
-- [ ] **向量数据库集成**：部署并接入 ChromaDB/Milvus 存储专业文档切片。
-- [ ] **Embedding 优化**：接入专门的文本表征模型（如 `BGE-M3` / `m3e-base`），替换通用基座 Embedding。
-- [ ] **引入 Rerank 机制**：加入 `BGE-Reranker`，实施 Top-K 二次重排序，大幅提升垂直概念（如：斗拱、哥特式尖券）的检索命中率与最终文本忠实度。
+### ✅ Phase 2: 构建高精度 RAG 检索闭环 (已完成)
+- [x] **Qdrant 本地向量数据库集成**：采用 Qdrant 本地模式持久化存储文档向量与原始文本，替代全量内存加载，实现轻量级、可复用的向量检索底座。集合采用 COSINE 距离度量，支持基于内容哈希的幂等性去重插入（`upsert`）。
+- [x] **Embedding 优化**：接入 `BAAI/bge-m3` 专业文本表征模型（1024 维），在灌库与查询阶段进行高质量的语义向量化，显著优于通用基座 Embedding。
+- [x] **混合检索与 Rerank 精排**：构建 `HybridRetrieverV2`，融合 **BM25 稀疏检索**（`jieba` 中文分词 + `rank_bm25`）与 **Qdrant 稠密向量检索**双路召回，经去重合并后交由 `bge-reranker-base`（CrossEncoder）进行 Top-K 二次精排，大幅提升垂直概念（如：斗拱、哥特式尖券）的检索命中率与上下文忠实度。
+- [x] **FastAPI 检索服务化**：封装为生产级异步服务（`api/server.py`），提供 `/api/retrieve` 标准接口。通过 `lifespan` 生命周期管理全局检索器与模型实例，避免每次请求重复加载，实现低延迟、高可用的 RAG 上下文检索能力。
 
 ### 🚀 Phase 3: GRPO/RLHF 强化学习对齐 (规划中)
 - [ ] **设计 RAG 专用奖励函数 (Reward Model)**：

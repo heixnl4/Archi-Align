@@ -76,7 +76,7 @@ def load_model_and_tokenizer(model_path):
 def main():
     # 这里的路径是在云服务器上的绝对路径
     model_path = "/root/autodl-tmp/models/Qwen2.5-7B-Instruct" 
-    data_path = "./data/processed/rag_sft_dataset.jsonl"
+    data_path = "../../data/processed/rag_sft_dataset.jsonl"
     
     print(">>> 1. 初始化模型与分词器...")
     model, tokenizer = load_model_and_tokenizer(model_path)

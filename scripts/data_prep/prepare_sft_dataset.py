@@ -1,10 +1,10 @@
 import os
 import sys
+# 将项目根目录加入 Python 路径
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-__package__ = "scripts"
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.utils import clean_and_chunk_docx
 import json
-from utils import clean_and_chunk_docx
 from tqdm import tqdm
 from openai import OpenAI
 from dotenv import load_dotenv
