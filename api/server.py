@@ -1,13 +1,16 @@
 # server.py
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import json
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 # 导入咱们写好的底层模块
-from src.retrieval.qdrant_manager import VectorDBManager
-from src.retrieval.hybrid_retriever import HybridRetrieverV2
+from src.retrieval import VectorDBManager
+from src.retrieval import HybridRetrieverV2
 
 # ================= 1. Pydantic 数据模型 =================
 class QueryRequest(BaseModel):

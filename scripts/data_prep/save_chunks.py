@@ -1,5 +1,10 @@
 import json
-from utils import clean_and_chunk_docx
+import os
+import sys
+# 将项目根目录加入 Python 路径
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from src.utils import clean_and_chunk_docx
 
 # 调用函数处理 Word 文档
 file_path = "../../data/raw/外国建筑史.docx"  # 替换为你的 .docx 文件路径

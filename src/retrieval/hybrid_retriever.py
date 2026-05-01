@@ -1,11 +1,10 @@
-# hybrid_retriever_v2.py
 import jieba
 from rank_bm25 import BM25Okapi
 from sentence_transformers import CrossEncoder
 
 # 导入我们刚才写的 Milvus 管理器
 # 假设它保存在 milvus_manager.py 中
-from qdrant_manager import VectorDBManager
+from .qdrant_manager import VectorDBManager
 
 class HybridRetrieverV2:
     def __init__(self, db_manager: VectorDBManager, all_chunks: list):

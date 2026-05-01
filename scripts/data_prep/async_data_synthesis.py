@@ -1,7 +1,11 @@
 import os
+import sys
+# 将项目根目录加入 Python 路径
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from src.utils import clean_and_chunk_docx
 import json
 import asyncio
-from utils import clean_and_chunk_docx
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
